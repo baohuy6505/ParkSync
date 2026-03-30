@@ -8,7 +8,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
-import java.io.FileInputStream;
 
 @Service
 public class FirebaseService {
@@ -18,13 +17,12 @@ public class FirebaseService {
     @PostConstruct
     public void initialize() {
         try {
-            // 1. Huy nhớ để file firebase-key.json ở thư mục gốc của project nhé!
-            FileInputStream serviceAccount = new FileInputStream("firebase-key.json");
+            org.springframework.core.io.ClassPathResource resource = 
+            new org.springframework.core.io.ClassPathResource("service-account.json");
 
             FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    // 2. Thay link này bằng Database URL trong Firebase Console của Huy
-                    .setDatabaseUrl("https://TEN-DU-AN-CUA-HUY.firebaseio.com") 
+                    .setCredentials(GoogleCredentials.fromStream(resource.getInputStream()))
+                    .setDatabaseUrl("https://parksync-e31a0-default-rtdb.asia-southeast1.firebasedatabase.app/") 
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
@@ -32,9 +30,9 @@ public class FirebaseService {
             }
             
             dbReference = FirebaseDatabase.getInstance().getReference("parking_status");
-            System.out.println("🔥 Firebase đã sẵn sàng kết nối Cloud!");
+            System.out.println("Firebase DA SAN SANG KET NOI Cloud!");
         } catch (Exception e) {
-            System.err.println("❌ Lỗi cấu hình Firebase: " + e.getMessage());
+            System.err.println("LOI CAU HINH Firebase: " + e.getMessage());
         }
     }
 
@@ -42,7 +40,17 @@ public class FirebaseService {
     public void updateSpotsOnWeb(int availableSpots) {
         if (dbReference != null) {
             dbReference.child("available_spots").setValueAsync(availableSpots);
-            System.out.println("🚀 Cloud Firebase: Đã cập nhật còn " + availableSpots + " chỗ.");
+            System.out.println(" Cloud Firebase: DA CAP NHAT CON " + availableSpots + " CHO.");
+        }
+    }
+
+    // Hàm để bắn trạng thái chi tiết của từng cổng lên Web
+    // gateName: GATE_A, GATE_B... | data: Chứa biển số xe, thời gian...
+    public void updateGateStatus(String gateName, java.util.Map<String, Object> data) {
+        if (dbReference != null) {
+            // Nó sẽ tạo cấu trúc: parking_status -> gates -> GATE_A -> {plate: "...", time: "..."}
+            dbReference.child("gates").child(gateName).setValueAsync(data);
+            System.out.println(" Firebase: DA CAP NHAT TRANG THAI CHO " + gateName);
         }
     }
 }

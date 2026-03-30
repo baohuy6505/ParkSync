@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ Thống Giám Sát Bãi Xe - ParkSync</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; padding: 50px; }
+        .card-counter { font-size: 80px; font-weight: bold; color: #dc3545; }
+        .status-card { border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+<div class="container text-center">
+    <h1 class="mb-5">📡 HỆ THỐNG GIÁM SÁT BÃI XE (REAL-TIME)</h1>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card status-card p-4 bg-white">
+                <h3>SỐ CHỖ TRỐNG HIỆN TẠI</h3>
+                <div id="available-spots" class="card-counter">--</div>
+                <p class="text-muted">Dữ liệu cập nhật tự động từ Firebase Cloud</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+    // 1. Cấu hình Firebase của Huy (Lấy ở Project Settings trên Web Firebase)
+    const firebaseConfig = {
+        databaseURL: "https://parksync-e31a0-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+    
+    // 2. Khởi tạo
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 3. LẮNG NGHE SỰ THAY ĐỔI (Đây là chìa khóa!)
+    // Khi Java bắn lên node "parking_status/available_spots", hàm này sẽ tự chạy
+    db.ref("parking_status/available_spots").on("value", (snapshot) => {
+        const val = snapshot.val();
+        document.getElementById("available-spots").innerText = val;
+        console.log("Số chỗ đã cập nhật: " + val);
+    });
+</script>
+
+</body>
+</html>
