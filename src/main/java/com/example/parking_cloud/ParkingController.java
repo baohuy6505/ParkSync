@@ -12,6 +12,7 @@ import java.util.Collections;
 
 @RestController
 @RequestMapping("/api/parking")
+@CrossOrigin(origins = "*")
 public class ParkingController {
 
     @Autowired
