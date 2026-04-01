@@ -1,4 +1,4 @@
-package com.example.parking_cloud;
+package com.example.parking_cloud.config;
 import org.springframework.amqp.core.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

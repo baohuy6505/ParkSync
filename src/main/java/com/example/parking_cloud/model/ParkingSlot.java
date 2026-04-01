@@ -1,4 +1,4 @@
-package com.example.parking_cloud;
+package com.example.parking_cloud.model;
 
 import jakarta.persistence.*;
 

@@ -1,4 +1,4 @@
-package com.example.parking_cloud;
+package com.example.parking_cloud.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
@@ -22,7 +22,8 @@ public class FirebaseService {
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(resource.getInputStream()))
-                    .setDatabaseUrl("https://parksync-e31a0-default-rtdb.asia-southeast1.firebasedatabase.app/") 
+                    .setDatabaseUrl("https://parksync-e31a0-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                    //link database URL của Firebase Realtime Database trên mây
                     .build();
 
             if (FirebaseApp.getApps().isEmpty()) {
