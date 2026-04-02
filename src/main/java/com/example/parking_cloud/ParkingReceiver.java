@@ -31,7 +31,6 @@ public class ParkingReceiver {
     private String myGateName; // Tên cổng của máy này (VD: GATE_HUY)
 
     private int availableSpots = 100;  // Giả sử bãi có 100 chỗ trống ban đầu
-
     // ====================================================================
     // LUỒNG 1: TRANH VIỆC (Chỉ 1 máy giật được phiếu từ queue_xin_vao)
     // ====================================================================

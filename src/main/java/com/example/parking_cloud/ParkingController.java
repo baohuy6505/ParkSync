@@ -75,10 +75,14 @@ public String vaoBai(@RequestParam String bienSo) {
     // Link test: http://localhost:8081/api/parking/ra-bai?bienSo=43A-99999
     @GetMapping("/ra-bai")
     public String raBai(@RequestParam String bienSo) {
-        String message = "RA|" + bienSo;
-        rabbitTemplate.convertAndSend(RabbitMQConfig.WORK_QUEUE, message);
-        System.out.println("DA GUI LEN HANG DOI: " + message);
-
-        return "DA GUI YEU CAU ROI BAI CHO XE [" + bienSo + "]";
+        String myQueue = "queue_vao_" + gateName; 
+    
+    // 2. Đóng gói lệnh RA (phải có dấu | )
+    String message = "RA|" + bienSo; 
+    
+    // 3. Ném vào túi riêng
+    rabbitTemplate.convertAndSend(myQueue, message);
+    
+    return "Cổng " + gateName + " đang xử lý cho xe [" + bienSo + "] RA bãi.";
     }
 }
