@@ -586,13 +586,6 @@
           const resultText = await response.text(); // Lấy câu trả lời từ Spring Boot
           console.log(" Server trả về:", resultText);
 
-          // 3. CẬP NHẬT GIAO DIỆN SAU KHI SERVER BÁO THÀNH CÔNG
-        //   if (action === "Entry") {
-        //     availableSpots -= 1;
-        //   } else {
-        //     availableSpots += 1;
-        //   }
-
           // Chọn ngẫu nhiên 1 cổng online để hiển thị animation cho đẹp
           const onlineGates = gatesData.filter((g) => g.status === "online");
           let chosenGate = onlineGates.length

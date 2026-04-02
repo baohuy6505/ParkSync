@@ -29,7 +29,7 @@ public class RabbitMQConfig {
     // 4. TẠO ĐÔI TAI RIÊNG CHO MÁY NÀY (VD máy Vũ sẽ tạo ra: queue_sync_GATE_A)
     @Bean(name = "syncQueue")
     public Queue syncQueue() {
-        return new Queue("queue_sync_" + gateName, true);
+        return new Queue("queue_sync_" + gateName, true, false, true);
     }
 
     // 5. CẮM ĐÔI TAI RIÊNG VÀO CÁI LOA TỔNG
@@ -37,4 +37,5 @@ public class RabbitMQConfig {
     public Binding bindingSync(Queue syncQueue, FanoutExchange syncExchange) {
         return BindingBuilder.bind(syncQueue).to(syncExchange);
     }
+    
 }
