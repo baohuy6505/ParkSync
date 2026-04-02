@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.example.parking_cloud.config.FirebaseService;
+//import com.example.parking_cloud.config.FirebaseService;
 import com.example.parking_cloud.config.RabbitMQConfig;
 import com.example.parking_cloud.model.ParkingLog;
 import com.example.parking_cloud.model.ParkingLogRepository;
@@ -21,8 +21,8 @@ public class ParkingReceiver {
     @Autowired
     private ParkingLogRepository parkingLogRepository; // Dùng để lưu nhật ký TRÊN MONGODB ATLAS
 
-    @Autowired
-    private FirebaseService firebaseService;
+    // @Autowired
+    // private FirebaseService firebaseService;
 
     @Autowired
     private RabbitTemplate rabbitTemplate; // Dùng để hét lên loa
@@ -35,7 +35,7 @@ public class ParkingReceiver {
     // ====================================================================
     // LUỒNG 1: TRANH VIỆC (Chỉ 1 máy giật được phiếu từ queue_xin_vao)
     // ====================================================================
-    @RabbitListener(queues = RabbitMQConfig.WORK_QUEUE)
+    @RabbitListener(queues = "queue_vao_${server.gate.name}")
     public void processEntryRequest(String thongTinXe) {
         System.out.println("[" + myGateName + "] DA CHOP DUOC PHIEU CUA XE: " + thongTinXe);
 
@@ -89,9 +89,9 @@ public class ParkingReceiver {
                 availableSpots--; // Cập nhật biến local để máy mình biết
 
                 // CHỈ MÁY CHỦ DUYỆT MỚI GỌI FIREBASE ĐỂ TRỪ 1
-                if (nguoiDuyet.equals(myGateName)) {
-                    firebaseService.updateSpotsOnWeb(-1); // TRUYỀN -1 LÀ ĐÚNG
-                }
+                // if (nguoiDuyet.equals(myGateName)) {
+                //     firebaseService.updateSpotsOnWeb(-1); // TRUYỀN -1 LÀ ĐÚNG
+                // }
 
             } else if (action.equals("RA")) {
                 if (xeTrongBai == null) return;
@@ -101,9 +101,9 @@ public class ParkingReceiver {
 
                 availableSpots++; // Cập nhật biến local
 
-                if (nguoiDuyet.equals(myGateName)) {
-                    firebaseService.updateSpotsOnWeb(1); // TRUYỀN 1 LÀ ĐÚNG
-                }
+                // if (nguoiDuyet.equals(myGateName)) {
+                //     firebaseService.updateSpotsOnWeb(1); // TRUYỀN 1 LÀ ĐÚNG
+                // }
             }
 
             ParkingLog logEntry = new ParkingLog();

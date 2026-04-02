@@ -6,20 +6,23 @@ import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
 public class RabbitMQConfig {
-   // Lấy tên cổng từ file properties (VD: GATE_HUY)
-   @Value("${server.gate.name:DEFAULT_GATE}")
-   private String gateName;
-    
-   // 1. TÊN CÁC ỐNG DẪN CHUNG CHO CẢ 5 MÁY
-   public static final String WORK_QUEUE = "queue_xin_vao"; // Khay hồ sơ chung
-   public static final String SYNC_EXCHANGE = "exchange_dong_bo"; // Loa phóng thanh tổng
+    // Lấy tên cổng từ file properties (VD: GATE_HUY)
+    @Value("${server.gate.name:DEFAULT_GATE}")
+    private String gateName;
+
+    // 1. TÊN CÁC ỐNG DẪN CHUNG CHO CẢ 5 MÁY
+    public static final String WORK_QUEUE = "queue_xin_vao"; // Khay hồ sơ chung
+    public static final String SYNC_EXCHANGE = "exchange_dong_bo"; // Loa phóng thanh tổng
 
     // 2. TẠO KHAY HỒ SƠ CHUNG (Để 5 máy tranh nhau xử lý)
-    @Bean
-    public Queue workQueue() {
-        return new Queue(WORK_QUEUE, true);
+    // @Bean
+    // public Queue workQueue() {
+    //     return new Queue(WORK_QUEUE, true);
+    // }
+@Bean
+    public Queue entryQueue() {
+        return new Queue("queue_vao_" + gateName, true);
     }
-
     // 3. TẠO LOA PHÓNG THANH (Dạng Fanout - Ai hét vào là dội đi muôn nơi)
     @Bean
     public FanoutExchange syncExchange() {
@@ -37,5 +40,5 @@ public class RabbitMQConfig {
     public Binding bindingSync(Queue syncQueue, FanoutExchange syncExchange) {
         return BindingBuilder.bind(syncQueue).to(syncExchange);
     }
-    
+
 }
