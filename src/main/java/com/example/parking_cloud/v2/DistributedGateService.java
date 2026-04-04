@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 @Service
 public class DistributedGateService {
 
@@ -34,7 +35,6 @@ public class DistributedGateService {
     @Value("${my.public.url:http://localhost:8080}")
     private String myPublicUrl;
 
-    // Bản đồ vòng tròn ảo khai báo trong application.properties
     @Value("${gate.ring.urls:http://localhost:8080,http://localhost:8081}")
     private String ringUrlsConfig;
 
@@ -42,22 +42,16 @@ public class DistributedGateService {
     private RestTemplate restTemplate = new RestTemplate();
     
     private List<Map<String, Object>> localEvents = Collections.synchronizedList(new ArrayList<>());
-
-    // THÊM: Getter cho Controller gọi
-    public List<P2PMessage> getHangDoiTam() { return hangDoiTam; }
-
-    public List<Map<String, Object>> getLocalEvents() {
-        return localEvents;
-    }
-    
-    // Hàng đợi động 2: Cập nhật bảng tạm
     private List<P2PMessage> hangDoiTam = Collections.synchronizedList(new ArrayList<>());
     
     private int availableSpots = 100;
 
+    public List<P2PMessage> getHangDoiTam() { return hangDoiTam; }
+    public List<Map<String, Object>> getLocalEvents() { return localEvents; }
+
     @PostConstruct
     public void init() {
-        ringUrls = Arrays.asList(ringUrlsConfig.split(","));
+        ringUrls = new ArrayList<>(Arrays.asList(ringUrlsConfig.split(",")));
         ringUrls.replaceAll(url -> url.trim().replaceAll("/+$", ""));
         myPublicUrl = myPublicUrl.trim().replaceAll("/+$", "");
     }
@@ -75,11 +69,10 @@ public class DistributedGateService {
         int currentClock = lamportClock.tick(); 
         
         P2PMessage msg = new P2PMessage(1, "SEND", myGateName, currentClock, noiDungGiaoDich, myGateName);
-        System.out.println("KHOI TAO GIAO DICH: " + msg.toFormatString());
+        System.out.println("\n>>> KHOI TAO GIAO DICH: " + msg.toFormatString());
         
-        // THÊM DÒNG NÀY: Tự thực hiện Pha 1 (Khóa dữ liệu) cho chính máy mình trước
+        // Thực hiện Pha 1 (Khóa dữ liệu) cho chính máy mình trước
         thucHienHanhDongCucBo(msg); 
-        
         chuyenThongDiepDi(msg);
     }
 
@@ -109,22 +102,23 @@ public class DistributedGateService {
 
         if (vongHienTai == 1) {
             msg.setVong(2); msg.setHanhDong("TEMP");
-            thucHienHanhDongCucBo(msg); // THÊM: Tự lưu vào Bảng tạm của mình
+            thucHienHanhDongCucBo(msg); 
             chuyenThongDiepDi(msg);
         } else if (vongHienTai == 2) {
             msg.setVong(3); msg.setHanhDong("SYNC");
-            thucHienHanhDongCucBo(msg); // THÊM: Tự sắp xếp Bảng tạm của mình
+            thucHienHanhDongCucBo(msg); 
             chuyenThongDiepDi(msg);
         } else if (vongHienTai == 3) {
             msg.setVong(4); msg.setHanhDong("UPD");
-            thucHienHanhDongCucBo(msg); // THÊM: Cập nhật CSDL của mình
+            thucHienHanhDongCucBo(msg); 
             chuyenThongDiepDi(msg);
         } else if (vongHienTai == 4) {
             // Đã xong 4 vòng, CHỈ thực hiện cục bộ, KHÔNG truyền đi nữa
             thucHienHanhDongCucBo(msg); 
         }
     }
-private void recordEvent(P2PMessage msg) {
+
+    private void recordEvent(P2PMessage msg) {
         Map<String, Object> event = new HashMap<>();
         event.put("timestamp", System.currentTimeMillis());
         event.put("vong", msg.getVong());
@@ -132,12 +126,13 @@ private void recordEvent(P2PMessage msg) {
         event.put("bienSo", msg.getNoiDung().contains("|") ? msg.getNoiDung().split("\\|")[1] : "N/A");
         event.put("lamportClock", msg.getDongHo());
         event.put("noiDung", msg.getNoiDung());
+        
         localEvents.add(event);
-        // Giới hạn 50 sự kiện gần nhất cho nhẹ máy
         if (localEvents.size() > 50) localEvents.remove(0);
     }
-   private void thucHienHanhDongCucBo(P2PMessage msg) {
-        recordEvent(msg); // GHI LẠI SỰ KIỆN VÀO DANH SÁCH CHO GIAO DIỆN
+
+    private void thucHienHanhDongCucBo(P2PMessage msg) {
+        recordEvent(msg); 
         switch (msg.getVong()) {
             case 1:
                 System.out.println("    [Pha 1] KHOA TRUONG DU LIEU: " + msg.getNoiDung());
@@ -158,7 +153,6 @@ private void recordEvent(P2PMessage msg) {
     }
 
     private synchronized void luuVaoDatabaseChinh(P2PMessage msg) {
-        // Gỡ khỏi bảng tạm
         hangDoiTam.removeIf(m -> m.getNoiDung().equals(msg.getNoiDung()));
 
         String[] parts = msg.getNoiDung().split("\\|");
@@ -182,7 +176,7 @@ private void recordEvent(P2PMessage msg) {
                 logEntry.setThoiGian(new java.util.Date().toString()); 
                 logRepository.save(logEntry);
                 
-                System.out.println("   DA CAP NHAT XE VAO CSDL THÀNH CÔNG: " + bienSoXe);
+                System.out.println(" => DA CAP NHAT XE VAO CSDL THÀNH CÔNG: " + bienSoXe);
             } 
             else if (action.equals("RA") && xeTrongBai != null) {
                 slotRepository.delete(xeTrongBai);
@@ -196,7 +190,7 @@ private void recordEvent(P2PMessage msg) {
                 logEntry.setThoiGian(new java.util.Date().toString()); 
                 logRepository.save(logEntry);
                 
-                System.out.println("  DA CAP NHAT XE RA CSDL THÀNH CÔNG: " + bienSoXe);
+                System.out.println(" => DA CAP NHAT XE RA CSDL THÀNH CÔNG: " + bienSoXe);
             }
         } catch (Exception e) {
             System.err.println(" LOI CSDL: " + e.getMessage());
@@ -204,9 +198,15 @@ private void recordEvent(P2PMessage msg) {
     }
 
     // =======================================================
-    // TỰ ĐỘNG CHUYỂN LỖI (FAILOVER)
+    // TỰ ĐỘNG CHUYỂN LỖI (FAILOVER) & CHẾ ĐỘ ĐỘC LẬP
     // =======================================================
     private void chuyenThongDiepDi(P2PMessage msg) {
+        // Tránh lỗi IndexOutOfBounds nếu ringUrls rỗng hoặc cấu hình sai
+        if (ringUrls == null || ringUrls.isEmpty()) {
+            System.err.println("LỖI: Chưa cấu hình GATE_RING_URLS!");
+            return;
+        }
+
         int myIndex = ringUrls.indexOf(myPublicUrl);
         if (myIndex == -1) myIndex = 0; 
 
@@ -214,15 +214,25 @@ private void recordEvent(P2PMessage msg) {
         int nextIndex = (myIndex + 1) % ringUrls.size();
         int soLanThu = 0;
 
+        // Cố gắng gửi cho các server khác trong vòng tròn
         while (!guiThanhCong && soLanThu < ringUrls.size() - 1) {
             String targetUrl = ringUrls.get(nextIndex) + "/api/parking/v2/p2p-sync";
             try {
                 restTemplate.postForEntity(targetUrl, msg, String.class);
                 guiThanhCong = true;
             } catch (Exception e) {
-                System.err.println(" NHAY COC QUA SERVER SAP: " + targetUrl);
+                System.err.println("  NHAY COC QUA SERVER SAP: " + targetUrl);
                 nextIndex = (nextIndex + 1) % ringUrls.size();
                 soLanThu++;
+            }
+        }
+
+        // TÍNH NĂNG MỚI: NẾU TẤT CẢ SERVER KHÁC ĐỀU SẬP
+        if (!guiThanhCong) {
+            System.err.println("  TẤT CẢ CỔNG KHÁC ĐỀU SẬP! CHUYỂN SANG CHẾ ĐỘ ĐỘC LẬP...");
+            // Nếu mình là chủ của tin nhắn, tự động nhảy cóc lên pha tiếp theo để chốt CSDL
+            if (msg.getServerGoc().equals(myGateName)) {
+                thangCapVongGiaoDich(msg);
             }
         }
     }
