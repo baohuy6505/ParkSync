@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Bãi Đỗ Xe Phân Tán - V2</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --danger-color: #e11d48;
+            --success-color: #10b981;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 { margin: 0; font-size: 24px; }
+        .header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
+
+        .content {
+            display: flex;
+            padding: 30px;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .content { flex-direction: column; }
+        }
+
+        .form-section, .log-section { flex: 1; }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; }
+        .input-group input {
+            width: 100%; padding: 12px; border: 2px solid #e5e7eb;
+            border-radius: 10px; font-size: 16px; box-sizing: border-box; text-transform: uppercase;
+        }
+        .input-group input:focus { outline: none; border-color: var(--primary-color); }
+
+        .btn-group { display: flex; gap: 10px; }
+        
+        button {
+            flex: 1; padding: 14px; color: white; border: none;
+            border-radius: 10px; font-size: 16px; font-weight: bold;
+            cursor: pointer; transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-vao { background-color: var(--primary-color); }
+        .btn-vao:hover { background-color: #4338ca; }
+        
+        .btn-ra { background-color: var(--danger-color); }
+        .btn-ra:hover { background-color: #be123c; }
+
+        .log-section {
+            background: #f9fafb; border-radius: 10px; padding: 20px; border: 1px solid #e5e7eb;
+        }
+        .log-section h3 { margin-top: 0; color: #111827; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+
+        .log-list {
+            list-style: none; padding: 0; margin: 0; max-height: 350px; overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; color: #4b5563;
+            animation: fadeIn 0.5s ease-in-out; display: flex; flex-direction: column; gap: 5px;
+        }
+
+        .log-item.vao { border-left: 4px solid var(--primary-color); }
+        .log-item.ra { border-left: 4px solid var(--danger-color); }
+
+        .log-header { display: flex; justify-content: space-between; font-weight: bold; }
+        .log-time { font-size: 12px; color: #6b7280; }
+        .log-gate { background: #e5e7eb; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>HỆ THỐNG ĐỖ XE P2P - V2</h1>
+            <p>Đồng thuận 4 Pha & Đồng hồ Lamport</p>
+        </div>
+
+        <div class="content">
+            <div class="form-section">
+                <div class="input-group">
+                    <label for="bienSo">Nhập Biển Số Xe:</label>
+                    <input type="text" id="bienSo" placeholder="VD: 43A-123.45" required autocomplete="off">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-vao" id="btnVao" onclick="xuLyXe('vao')">📥 Cho Xe VÀO Bãi</button>
+                    <button class="btn-ra" id="btnRa" onclick="xuLyXe('ra')">📤 Cho Xe RA Bãi</button>
+                </div>
+                <p id="statusMsg" style="margin-top: 15px; font-size: 14px; color: #10b981; font-weight: bold; text-align: center;"></p>
+            </div>
+
+            <div class="log-section">
+                <h3>Lịch Sử Giao Dịch (MongoDB)</h3>
+                <ul class="log-list" id="logList">
+                    <li class="log-item" style="text-align: center; color: #9ca3af; border: none;">Đang tải dữ liệu từ CSDL...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputBienSo = document.getElementById('bienSo');
+        const logList = document.getElementById('logList');
+        const statusMsg = document.getElementById('statusMsg');
+        const btnVao = document.getElementById('btnVao');
+        const btnRa = document.getElementById('btnRa');
+
+        // Định tuyến cho Auto Failover (Quét cổng rảnh)
+        const danhSachCong = [
+            "http://localhost:8080", // Cổng 1
+            "http://localhost:8081", // Cổng 2
+            "http://localhost:8082"  // Cổng 3
+        ];
+        let luotTiepTheo = 0;
+
+        // Hàm xử lý VÀO hoặc RA
+        async function xuLyXe(hanhDong) {
+            const bienSo = inputBienSo.value.trim().toUpperCase();
+            if(!bienSo) {
+                alert("Vui lòng nhập biển số xe!");
+                return;
+            }
+
+            btnVao.disabled = true;
+            btnRa.disabled = true;
+            statusMsg.textContent = "⏳ Đang đàm phán đồng thuận...";
+            statusMsg.style.color = "#d97706";
+
+            let daGuiThanhCong = false;
+            let soLanThu = 0;
+            const tongSoCong = danhSachCong.length;
+            
+            // Endpoint tương ứng: /vao-bai hoặc /ra-bai
+            const endpoint = hanhDong === 'vao' ? '/api/parking/v2/vao-bai' : '/api/parking/v2/ra-bai';
+
+            while (!daGuiThanhCong && soLanThu < tongSoCong) {
+                const congDuocChon = danhSachCong[luotTiepTheo];
+                luotTiepTheo = (luotTiepTheo + 1) % tongSoCong;
+                soLanThu++;
+
+                try {
+                    const apiUrl = `${congDuocChon}${endpoint}?bienSo=${encodeURIComponent(bienSo)}`;
+                    const response = await fetch(apiUrl, { method: 'GET' });
+
+                    if (response.ok) {
+                        daGuiThanhCong = true;
+                        inputBienSo.value = '';
+                        statusMsg.textContent = `Đã phát lệnh ${hanhDong.toUpperCase()} cho xe ${bienSo} lên vòng tròn!`;
+                        statusMsg.style.color = "#10b981";
+                    }
+                } catch (error) {
+                    console.warn(`Cổng ${congDuocChon} đang sập, thử cổng khác...`);
+                }
+            }
+
+            if (!daGuiThanhCong) {
+                statusMsg.textContent = "❌ Toàn bộ hệ thống đang sập!";
+                statusMsg.style.color = "#e11d48";
+            }
+
+            btnVao.disabled = false;
+            btnRa.disabled = false;
+            
+            // Xóa thông báo sau 3 giây
+            setTimeout(() => { statusMsg.textContent = ""; }, 3000);
+        }
+
+        // Tự động Polling lịch sử từ MongoDB Atlas thông qua API /history
+        async function fetchLichSu() {
+            try {
+                // Tự động gọi vào cổng đang phục vụ giao diện này
+                const response = await fetch('/api/parking/v2/history');
+                const logs = await response.json();
+                
+                logList.innerHTML = ''; 
+                if(logs.length === 0) {
+                    logList.innerHTML = '<li class="log-item" style="color:#9ca3af; text-align:center; border: none;">Chưa có dữ liệu trong Database.</li>';
+                    return;
+                }
+
+                logs.forEach(log => {
+                    const li = document.createElement('li');
+                    li.className = `log-item ${log.hanhDong.toLowerCase()}`;
+                    
+                    // Format thời gian
+                    const timeObj = new Date(log.thoiGian);
+                    const timeString = isNaN(timeObj) ? log.thoiGian : timeObj.toLocaleString('vi-VN');
+
+                    const colorCode = log.hanhDong === 'VAO' ? '#4f46e5' : '#e11d48';
+
+                    li.innerHTML = `
+                        <div class="log-header">
+                            <span style="color: ${colorCode};">[${log.hanhDong}] Xe: ${log.bienSo}</span>
+                            <span class="log-gate">${log.congXuly}</span>
+                        </div>
+                        <div class="log-time">🕒 ${timeString}</div>
+                    `;
+                    logList.appendChild(li);
+                });
+            } catch (error) {
+                console.log("Đang đợi kết nối DB...");
+            }
+        }
+
+        // Quét DB 2 giây 1 lần
+        setInterval(fetchLichSu, 5000);
+        fetchLichSu();
+    </script>
+</body>
+</html>
