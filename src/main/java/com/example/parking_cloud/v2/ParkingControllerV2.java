@@ -36,14 +36,14 @@ public class ParkingControllerV2 {
     @GetMapping("/vao-bai")
     public String vaoBai(@RequestParam String bienSo) {
         p2pService.batDauGiaoDich("VAO", bienSo);
-        return "Bắt đầu chu trình đồng thuận VÀO cho xe: " + bienSo;
+        return "BAT DAU QUY TRINH DONG THUAN VAO CHO XE: " + bienSo;
     }
 
     // Khởi tạo quy trình RA BÃI
     @GetMapping("/ra-bai")
     public String raBai(@RequestParam String bienSo) {
         p2pService.batDauGiaoDich("RA", bienSo);
-        return "Bắt đầu chu trình đồng thuận RA cho xe: " + bienSo;
+        return "BAT DAU QUY TRINH DONG THUAN RA CHO XE: " + bienSo;
     }
 
     // API nội bộ dùng để các Server trong vòng tròn liên lạc với nhau

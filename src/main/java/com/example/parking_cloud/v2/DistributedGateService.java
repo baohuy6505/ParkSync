@@ -67,7 +67,7 @@ public class DistributedGateService {
     // =======================================================
     public void batDauGiaoDich(String loaiGiaoDich, String bienSo) {
         if (loaiGiaoDich.equals("VAO") && availableSpots <= 0) {
-            System.out.println("🛑 [" + myGateName + "] BÃI ĐÃ ĐẦY, TỪ CHỐI XE VÀO!");
+            System.out.println("[" + myGateName + "] BAI DA DAY, KHONG THE NHAN THEM XE VAO: " + bienSo);
             return;
         }
 
@@ -75,7 +75,7 @@ public class DistributedGateService {
         int currentClock = lamportClock.tick(); 
         
         P2PMessage msg = new P2PMessage(1, "SEND", myGateName, currentClock, noiDungGiaoDich, myGateName);
-        System.out.println("🚀 Khởi tạo giao dịch: " + msg.toFormatString());
+        System.out.println("KHOI TAO GIAO DICH: " + msg.toFormatString());
         
         // THÊM DÒNG NÀY: Tự thực hiện Pha 1 (Khóa dữ liệu) cho chính máy mình trước
         thucHienHanhDongCucBo(msg); 
@@ -140,18 +140,18 @@ private void recordEvent(P2PMessage msg) {
         recordEvent(msg); // GHI LẠI SỰ KIỆN VÀO DANH SÁCH CHO GIAO DIỆN
         switch (msg.getVong()) {
             case 1:
-                System.out.println("   🔒 [Pha 1] KHOA TRUONG DU LIEU: " + msg.getNoiDung());
+                System.out.println("    [Pha 1] KHOA TRUONG DU LIEU: " + msg.getNoiDung());
                 break;
             case 2:
-                System.out.println("   📝 [Pha 2] CAP NHAT BANG TAM");
+                System.out.println("    [Pha 2] CAP NHAT BANG TAM");
                 hangDoiTam.add(msg);
                 break;
             case 3:
-                System.out.println("   ⚖️ [Pha 3] SAP XEP TRAN BANG TAM");
+                System.out.println("    [Pha 3] SAP XEP TRAN BANG TAM");
                 hangDoiTam.sort((m1, m2) -> Integer.compare(m1.getDongHo(), m2.getDongHo()));
                 break;
             case 4:
-                System.out.println("   💾 [Pha 4] THUC HIEN CAP NHAT CSDL");
+                System.out.println("    [Pha 4] THUC HIEN CAP NHAT CSDL");
                 luuVaoDatabaseChinh(msg);
                 break;
         }
@@ -199,7 +199,7 @@ private void recordEvent(P2PMessage msg) {
                 System.out.println("  DA CAP NHAT XE RA CSDL THÀNH CÔNG: " + bienSoXe);
             }
         } catch (Exception e) {
-            System.err.println("❌ LOI CSDL: " + e.getMessage());
+            System.err.println(" LOI CSDL: " + e.getMessage());
         }
     }
 
