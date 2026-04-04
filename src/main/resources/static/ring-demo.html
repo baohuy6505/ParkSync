@@ -254,8 +254,8 @@
         //{ name: "GATE_E", port: 8084, url: "https://cloudpark-iq-huy.onrender.com/api/parking/v2/history", angle: 198 }
       ];
       // Sắp xếp theo đúng thứ tự ring: A(0) -> B(1) -> C(2) -> D(3) -> E(4) -> A
-      const RING_ORDER = [0, 1, 2, 3, 4, 0]; // chỉ số trong GATES
-
+      // const RING_ORDER = [0, 1, 2, 3, 4, 0]; // chỉ số trong GATES
+      const RING_ORDER = [0, 1, 2, 0];
       let currentFilter = "";
       let animationInterval = null;
       let activeDot = null;
@@ -562,4 +562,3 @@
     </script>
   </body>
 </html>
- 
