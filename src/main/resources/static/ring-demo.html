@@ -202,11 +202,16 @@
 <script>
     // Cấu hình 5 cổng (thay đổi port nếu chạy khác)
     const GATES = [
-        { name: "GATE_A", port: 8080, url: "http://localhost:8080", angle: -90 },
-        { name: "GATE_B", port: 8081, url: "http://localhost:8081", angle: -18 },
-        { name: "GATE_C", port: 8082, url: "http://localhost:8082", angle: 54 },
-        { name: "GATE_D", port: 8083, url: "http://localhost:8083", angle: 126 },
-        { name: "GATE_E", port: 8084, url: "http://localhost:8084", angle: 198 }
+        // { name: "GATE_A", port: 8080, url: "http://localhost:8080", angle: -90 },
+        // { name: "GATE_B", port: 8081, url: "http://localhost:8081", angle: -18 },
+        // { name: "GATE_C", port: 8082, url: "http://localhost:8082", angle: 54 },
+        // { name: "GATE_D", port: 8083, url: "http://localhost:8083", angle: 126 },
+        // { name: "GATE_E", port: 8084, url: "http://localhost:8084", angle: 198 }
+        { name: "GATE_A", port: 8080, url: "https://cloudpark-iq-huy.onrender.com/api/parking/v2/history", angle: -90 },
+        { name: "GATE_B", port: 8081, url: "https://parksync-dskl.onrender.com/api/parking/v2/history", angle: -18 },
+        { name: "GATE_C", port: 8082, url: "https://cloudpark-iq-hai.onrender.com/api/parking/v2/history", angle: 54 },
+        //{ name: "GATE_D", port: 8083, url: "https://cloudpark-iq-huy.onrender.com/api/parking/v2/history", angle: 126 },
+        //{ name: "GATE_E", port: 8084, url: "https://cloudpark-iq-huy.onrender.com/api/parking/v2/history", angle: 198 }
     ];
     // Sắp xếp theo đúng thứ tự ring: A(0) -> B(1) -> C(2) -> D(3) -> E(4) -> A
     const RING_ORDER = [0,1,2,3,4,0];  // chỉ số trong GATES
